@@ -27,7 +27,9 @@ shap>=0.44.0
 pytest>=8.0.0
 # ==========================================
 # 3. Deep Learning (CNN Crop Disease Model)
+# CPU-only PyTorch — saves ~2GB vs CUDA build on Render
 # ==========================================
+--extra-index-url https://download.pytorch.org/whl/cpu
 torch>=2.0.0
 torchvision>=0.15.0
 
@@ -35,3 +37,4 @@ torchvision>=0.15.0
 # 4. Production Server
 # ==========================================
 gunicorn>=21.2.0
+whitenoise>=6.6.0

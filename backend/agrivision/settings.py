@@ -15,7 +15,14 @@ SECRET_KEY = os.environ.get('SECRET_KEY') or secrets.token_urlsafe(50)
 DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
 # ALLOWED_HOSTS parsed from comma-separated environment variable
-ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,[::1]').split(',') if h.strip()]
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get(
+    'ALLOWED_HOSTS',
+    'agri-connect-huxm.onrender.com,localhost,127.0.0.1,[::1]'
+).split(',') if h.strip()]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://agri-connect-huxm.onrender.com',
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -40,6 +47,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -98,6 +106,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

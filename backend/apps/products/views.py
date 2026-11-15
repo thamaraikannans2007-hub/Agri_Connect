@@ -6,22 +6,30 @@ from django.db.models import Q
 from PIL import Image
 import io
 import os
-import sys
-from pathlib import Path
-
-# Add agrivision-ml to sys.path so we can import the CNN Crop Disease Service
-AGRIVISION_ML_DIR = Path(__file__).resolve().parent.parent.parent.parent / 'agrivision-ml'
-if str(AGRIVISION_ML_DIR) not in sys.path:
-    sys.path.insert(0, str(AGRIVISION_ML_DIR))
-
-try:
-    from src.crop_disease import get_crop_disease_service
-    _cnn_service = get_crop_disease_service()
-except Exception:
-    _cnn_service = None
 
 from .models import ProductListing, QualityAssessment
 from .serializers import ProductListingSerializer, ProductCreateSerializer, QualityAssessmentSerializer
+
+# Module-level sentinel; actual CNN loads lazily on first prediction call
+_cnn_service = None
+
+
+def _load_cnn_service():
+    """Load CNN service lazily — called only when a prediction is actually needed."""
+    global _cnn_service
+    if _cnn_service is not None:
+        return _cnn_service
+    try:
+        import sys as _sys
+        from pathlib import Path as _Path
+        _ml_dir = str(_Path(__file__).resolve().parent.parent.parent.parent / 'agrivision-ml')
+        if _ml_dir not in _sys.path:
+            _sys.path.insert(0, _ml_dir)
+        from src.crop_disease import get_crop_disease_service
+        _cnn_service = get_crop_disease_service()
+    except Exception:
+        _cnn_service = None
+    return _cnn_service
 
 
 def assess_produce_image(image_file):
@@ -29,17 +37,11 @@ def assess_produce_image(image_file):
     Quality and Disease assessment powered by the CNN EfficientNet-B2 crop disease model.
     Falls back gracefully to pixel heuristic if PyTorch weights are not yet initialized.
     """
-    global _cnn_service
-    if _cnn_service is None:
-        try:
-            from src.crop_disease import get_crop_disease_service
-            _cnn_service = get_crop_disease_service()
-        except Exception:
-            pass
+    cnn = _load_cnn_service()
 
-    if _cnn_service and _cnn_service.is_loaded:
+    if cnn and cnn.is_loaded:
         try:
-            return _cnn_service.predict(image_file)
+            return cnn.predict(image_file)
         except Exception:
             pass
 
