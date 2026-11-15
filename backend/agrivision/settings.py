@@ -21,7 +21,10 @@ ALLOWED_HOSTS = [h.strip() for h in os.environ.get(
 ).split(',') if h.strip()]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://agri-connect-huxm.onrender.com',
+    origin.strip() for origin in os.environ.get(
+        'CSRF_TRUSTED_ORIGINS',
+        'https://agri-connect-huxm.onrender.com'
+    ).split(',') if origin.strip()
 ]
 
 INSTALLED_APPS = [
@@ -129,6 +132,14 @@ else:
     CORS_ALLOW_ALL_ORIGINS = DEBUG
 
 CORS_ALLOW_CREDENTIALS = True
+
+# Permit Vercel production and preview deployments to call the Render API.
+# If CORS_ALLOWED_ORIGINS is set in the Render environment, that explicit
+# allowlist takes precedence and this wildcard preview rule is not enabled.
+if not _cors_env:
+    CORS_ALLOWED_ORIGIN_REGEXES = [
+        r'^https://[a-zA-Z0-9-]+\.vercel\.app$',
+    ]
 
 # REST Framework
 REST_FRAMEWORK = {

@@ -3,9 +3,13 @@
    This file must be loaded AFTER data.js and BEFORE ui.js. */
 
 /* ---------- Constants ---------- */
-const SERVER_ORIGIN = (typeof window !== 'undefined' && window.location && window.location.origin)
-  ? window.location.origin
-  : 'http://127.0.0.1:8000';
+// Local dev → Django on localhost. Production (Vercel/static host) → Render backend.
+// Override at runtime by setting window.AGRIVISION_API_ORIGIN before this script loads.
+const LOCAL_HOSTS = ['localhost', '127.0.0.1', '[::1]'];
+const IS_LOCAL = typeof window !== 'undefined' && LOCAL_HOSTS.includes(window.location.hostname);
+const SERVER_ORIGIN = (typeof window !== 'undefined' && window.AGRIVISION_API_ORIGIN)
+  ? window.AGRIVISION_API_ORIGIN.replace(/\/$/, '')
+  : (IS_LOCAL ? 'http://127.0.0.1:8000' : 'https://agri-connect-huxm.onrender.com');
 const API_BASE = SERVER_ORIGIN + '/api';
 const TOKEN_KEY = 'av-access-token';
 const REFRESH_KEY = 'av-refresh-token';
